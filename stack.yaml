@@ -1,0 +1,145 @@
+version: '3'
+
+services:
+  authDB:
+    image: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 30s
+      retries: 10
+    volumes:
+    - authdata:/var/lib/mysql
+    networks:
+    - authnetwork
+
+  authenticationmigration:
+    image: authenticationmigration
+    environment:
+      - DATABASE_URL=authDB
+#    depends_on:
+#      authDB:
+#        condition: service_healthy
+    networks:
+      - authnetwork
+
+  authentication:
+    image: authentication
+    environment:
+      - DATABASE_URL=authDB
+#    depends_on:
+#      - authenticationmigration
+    ports:
+    - 5000:5000
+    networks:
+       - authnetwork
+
+  appDB:
+    image: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 10s
+      retries: 10
+    volumes:
+      - storedata:/var/lib/mysql
+    networks:
+      - buyer
+      - daemon
+      - admin
+
+
+  applicationmigration:
+    image: applicationmigration
+    environment:
+      - DATABASE_URL=appDB
+#    depends_on:
+#      appDB:
+#        condition: service_healthy
+    networks:
+      - buyer
+      - daemon
+      - admin
+
+  admin:
+    image: admin
+    environment:
+      - DATABASE_URL=appDB
+#    depends_on:
+#        - applicationmigration
+    ports:
+      - 5003:5003
+    networks:
+      - admin
+
+  warehouse:
+    image: warehouse
+    environment:
+      - DATABASE_URL=appDB
+#    depends_on:
+#      - applicationmigration
+    ports:
+      - 5001:5001
+    networks:
+      - warehouse
+    deploy:
+      replicas: 3
+
+  daemon:
+    image: daemon
+    environment:
+      - DATABASE_URL=appDB
+#    depends_on:
+#      - applicationmigration
+    networks:
+      - daemon
+
+  buyer:
+    image: buyer
+    environment:
+      - DATABASE_URL=appDB
+#    depends_on:
+#      - applicationmigration
+    ports:
+      - 5002:5002
+    networks:
+      - buyer
+    deploy:
+      replicas: 3
+
+  adminer:
+    image: adminer
+    ports:
+      - 8080:8080
+    networks:
+      - admin
+      - authnetwork
+      - daemon
+      - buyer
+      - warehouse
+
+  redis:
+    image: redis
+    ports:
+        - 6379:6379
+    networks:
+      - daemon
+      - warehouse
+
+volumes:
+  authdata:
+  storedata:
+
+networks:
+  authnetwork:
+    driver: overlay
+  buyer:
+    driver: overlay
+  warehouse:
+    driver: overlay
+  daemon:
+    driver: overlay
+  admin:
+    driver: overlay

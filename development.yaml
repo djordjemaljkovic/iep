@@ -1,0 +1,24 @@
+version: '3'
+
+services:
+  authDB:
+    image: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - 3306:3306
+  appDB:
+    image: mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    ports:
+      - 3307:3306
+  redis:
+    image: redis
+    restart: always
+    ports:
+      - 6379:6379
+  adminer:
+    image: adminer
+    ports:
+      - 8080:8080

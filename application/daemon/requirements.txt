@@ -1,0 +1,13 @@
+SQLAlchemy < 1.4.0
+PyMySql
+sqlalchemy_utils
+redis
+Flask==1.1.2
+flask_sqlalchemy ==2.5.1
+flask_jwt_extended==4.2.3
+cryptography ==3.4.7
+flask_migrate==2.7.0
+flask_script==2.0.6
+Jinja2==3.0.3
+itsdangerous==2.0.1
+werkzeug==2.0.3
